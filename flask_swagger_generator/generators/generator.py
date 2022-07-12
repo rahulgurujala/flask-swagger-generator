@@ -19,14 +19,10 @@ class Generator:
     @staticmethod
     def of(version: SwaggerVersion):
 
-        if SwaggerVersion.VERSION_THREE.equals(version):
-            swagger_specifier = SwaggerThreeSpecifier()
-            generator = Generator(swagger_specifier)
-        else:
-            raise SwaggerGeneratorException(
-                "Swagger version {} is not supported".format(version)
-            )
-        return generator
+        if not SwaggerVersion.VERSION_THREE.equals(version):
+            raise SwaggerGeneratorException(f"Swagger version {version} is not supported")
+        swagger_specifier = SwaggerThreeSpecifier()
+        return Generator(swagger_specifier)
 
     def __init__(self, swagger_specifier: SwaggerSpecifier):
         self._specifier = swagger_specifier
@@ -43,10 +39,9 @@ class Generator:
     ):
         self.index_endpoints(app)
 
-        if not destination_path:
-            self.destination_path = os.path.join(os.curdir, 'swagger.yaml')
-        else:
-            self.destination_path = destination_path
+        self.destination_path = destination_path or os.path.join(
+            os.curdir, 'swagger.yaml'
+        )
 
         self.specifier.set_application_name(application_name)
         self.specifier.set_application_version(application_version)

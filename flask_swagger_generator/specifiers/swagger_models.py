@@ -16,22 +16,17 @@ class SwaggerModel(ABC):
 
     def has_swagger_model_child_type(self, child_swagger_model_type):
 
-        for swagger_model in self.swagger_models:
-
-            if type(swagger_model) == child_swagger_model_type:
-                return True
-
-        return False
+        return any(
+            type(swagger_model) == child_swagger_model_type
+            for swagger_model in self.swagger_models
+        )
 
     def get_swagger_child_models_of_type(self, swagger_model_type):
-        selection = []
-
-        for swagger_model in self.swagger_models:
-
-            if type(swagger_model) == swagger_model_type:
-                selection.append(swagger_model)
-
-        return selection
+        return [
+            swagger_model
+            for swagger_model in self.swagger_models
+            if type(swagger_model) == swagger_model_type
+        ]
 
     def write(self, file):
         self.perform_write(file)
@@ -54,5 +49,4 @@ class SwaggerModel(ABC):
         """
         minimal = 100
         maximal = 1000000000
-        rand = randint(minimal, maximal)
-        return rand
+        return randint(minimal, maximal)

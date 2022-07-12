@@ -3,8 +3,7 @@ VERSION = (0, 3, 3, 'alpha', 0)
 
 def get_version(version=None):
     version = get_complete_version(version)
-    main = get_main_version(version)
-    return main
+    return get_main_version(version)
 
 
 def get_main_version(version=None):

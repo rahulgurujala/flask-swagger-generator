@@ -15,38 +15,31 @@ class RequestType(Enum):
     @staticmethod
     def from_string(value: str):
 
-        if isinstance(value, str):
-
-            if value.lower() == 'post':
-                return RequestType.POST
-            elif value.lower() == 'get':
-                return RequestType.GET
-            elif value.lower() == 'delete':
-                return RequestType.DELETE
-            elif value.lower() == 'put':
-                return RequestType.PUT
-            else:
-                raise SwaggerGeneratorException(
-                    'Could not convert value {} to a request type'.format(
-                        value
-                    )
-                )
-
-        else:
+        if not isinstance(value, str):
             raise SwaggerGeneratorException(
                 "Could not convert non string value to a request type"
+            )
+        if value.lower() == 'post':
+            return RequestType.POST
+        elif value.lower() == 'get':
+            return RequestType.GET
+        elif value.lower() == 'delete':
+            return RequestType.DELETE
+        elif value.lower() == 'put':
+            return RequestType.PUT
+        else:
+            raise SwaggerGeneratorException(
+                f'Could not convert value {value} to a request type'
             )
 
     def equals(self, other):
 
         if isinstance(other, Enum):
             return self.value == other.value
-        else:
+        try:
+            data_base_type = RequestType.from_string(other)
+            return data_base_type == self
+        except SwaggerGeneratorException:
+            pass
 
-            try:
-                data_base_type = RequestType.from_string(other)
-                return data_base_type == self
-            except SwaggerGeneratorException:
-                pass
-
-            return other == self.value
+        return other == self.value
