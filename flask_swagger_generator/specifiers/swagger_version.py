@@ -13,33 +13,27 @@ class SwaggerVersion(Enum):
     @staticmethod
     def from_string(value: str):
 
-        if isinstance(value, str):
-
-            if value.lower() in ['three', 'version_three']:
-                return SwaggerVersion.VERSION_THREE
-            elif value.lower() in ['two', 'version_two']:
-                return SwaggerVersion.VERSION_TWO
-            else:
-                raise SwaggerGeneratorException(
-                    'Could not convert value {} to a swagger version'.format(
-                        value
-                    )
-                )
-        else:
+        if not isinstance(value, str):
             raise SwaggerGeneratorException(
                 "Could not convert non string value to a swagger version"
+            )
+        if value.lower() in {'three', 'version_three'}:
+            return SwaggerVersion.VERSION_THREE
+        elif value.lower() in {'two', 'version_two'}:
+            return SwaggerVersion.VERSION_TWO
+        else:
+            raise SwaggerGeneratorException(
+                f'Could not convert value {value} to a swagger version'
             )
 
     def equals(self, other):
 
         if isinstance(other, Enum):
             return self.value == other.value
-        else:
+        try:
+            data_base_type = SwaggerVersion.from_string(other)
+            return data_base_type == self
+        except SwaggerGeneratorException:
+            pass
 
-            try:
-                data_base_type = SwaggerVersion.from_string(other)
-                return data_base_type == self
-            except SwaggerGeneratorException:
-                pass
-
-            return other == self.value
+        return other == self.value

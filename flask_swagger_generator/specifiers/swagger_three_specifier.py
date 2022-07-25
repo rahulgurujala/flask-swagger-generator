@@ -58,17 +58,11 @@ class SwaggerSchema(SwaggerModel):
         self.schema = schema
         self.properties = {}
 
-        if not nested_schemas:
-            self.nested_schemas = []
-        else:
-            self.nested_schemas = nested_schemas
-
+        self.nested_schemas = nested_schemas or []
         if isinstance(schema, dict):
 
             for key in schema:
-                self.properties[key] = "type: {}".format(
-                    self.get_type(schema[key]).value
-                )
+                self.properties[key] = f"type: {self.get_type(schema[key]).value}"
 
         elif isinstance(schema, MarshmallowSchema):
 
@@ -103,9 +97,7 @@ class SwaggerSchema(SwaggerModel):
         elif isinstance(value, fields.URL):
             return InputType.STRING
         else:
-            raise SwaggerGeneratorException(
-                "Type {} is not supported".format(type(value))
-            )
+            raise SwaggerGeneratorException(f"Type {type(value)} is not supported")
 
     @staticmethod
     def get_type(value):
@@ -119,9 +111,7 @@ class SwaggerSchema(SwaggerModel):
         elif isinstance(value, list):
             return InputType.ARRAY
         else:
-            SwaggerGeneratorException(
-                "Type {} is not supported".format(type(value))
-            )
+            SwaggerGeneratorException(f"Type {type(value)} is not supported")
 
     def perform_write(self, file):
 
@@ -172,7 +162,7 @@ class SwaggerResponse(SwaggerModel):
         self.description = description
         self.status_code = status_code
         self.schema_reference = schema_reference
-        self.response_reference = function_name + '_response'
+        self.response_reference = f'{function_name}_response'
 
     def perform_write(self, file):
         response_entry = inspect.cleandoc(
@@ -213,10 +203,11 @@ class SwaggerResponse(SwaggerModel):
                                 $ref: '#/components/schemas/{}'
                 """.format(
                     self.response_reference,
-                    "{} response".format(self.function_name),
-                    self.schema_reference
+                    f"{self.function_name} response",
+                    self.schema_reference,
                 )
             )
+
 
         component_entry = self.indent(component_entry, 2 * self.TAB)
         file.write(component_entry)
@@ -236,8 +227,7 @@ class SwaggerRequestBody(SwaggerModel):
         self.function_name = function_name
         self.description = description
         self.required = required
-        self.request_body_reference = \
-            self.function_name + '_request_body'
+        self.request_body_reference = f'{self.function_name}_request_body'
         self.schema_reference = schema_reference
 
     def perform_write(self, file):
@@ -283,7 +273,7 @@ class SwaggerOperationId(SwaggerModel):
         self.operation_id = function_name
 
     def perform_write(self, file):
-        operation_id_entry = "operationId: '{}'".format(self.operation_id)
+        operation_id_entry = f"operationId: '{self.operation_id}'"
         operation_id_entry = self.indent(operation_id_entry, 3 * self.TAB)
         file.write(operation_id_entry)
         file.write('\n')
@@ -325,7 +315,7 @@ class SwaggerRequestType(SwaggerModel):
         self.function_name = function_name
 
     def perform_write(self, file):
-        request_type_entry = "{}:".format(self.request_type.value)
+        request_type_entry = f"{self.request_type.value}:"
         request_type_entry = self.indent(request_type_entry, 2 * self.TAB)
         file.write(request_type_entry)
         file.write('\n')
@@ -407,9 +397,9 @@ class SwaggerPath(SwaggerModel):
         swagger_request_types = self.get_swagger_child_models_of_type(
             SwaggerRequestType
         )
-        parameter_models = []
-
         if parameters:
+
+            parameter_models = []
 
             for parameter in parameters:
                 input_type, name = parameter.split(':')
@@ -446,11 +436,8 @@ class SwaggerPath(SwaggerModel):
             for path_parameter in path_parameters:
 
                 self.path = self.path.replace(
-                    "<{}:{}>".format(
-                        path_parameter.input_type.get_flask_input_type_value(),
-                        path_parameter.name
-                    ),
-                    "{" + path_parameter.name + "}"
+                    f"<{path_parameter.input_type.get_flask_input_type_value()}:{path_parameter.name}>",
+                    "{" + path_parameter.name + "}",
                 )
 
 
@@ -636,10 +623,7 @@ class SwaggerThreeSpecifier(SwaggerModel, SwaggerSpecifier):
             description: str = ""
     ):
         if not isinstance(schema, SwaggerSchema):
-            schema = SwaggerSchema(
-                function_name + "_response_schema",
-                schema
-            )
+            schema = SwaggerSchema(f"{function_name}_response_schema", schema)
             self.schemas.append(schema)
 
         swagger_response = SwaggerResponse(
@@ -654,10 +638,7 @@ class SwaggerThreeSpecifier(SwaggerModel, SwaggerSpecifier):
     def add_request_body(self, function_name: str, schema):
 
         if not isinstance(schema, SwaggerSchema):
-            schema = SwaggerSchema(
-                function_name + "_request_body_schema",
-                schema
-            )
+            schema = SwaggerSchema(f"{function_name}_request_body_schema", schema)
             self.schemas.append(schema)
 
         swagger_request_body = SwaggerRequestBody(
@@ -691,7 +672,10 @@ class SwaggerThreeSpecifier(SwaggerModel, SwaggerSpecifier):
                         marshmallow_field,
                         properties.fields[marshmallow_field].schema
                     )
-                    schema.properties[marshmallow_field] = "$ref: '#/components/schemas/{}'".format(nested_schema.reference_name)
+                    schema.properties[
+                        marshmallow_field
+                    ] = f"$ref: '#/components/schemas/{nested_schema.reference_name}'"
+
                     self.schemas.append(nested_schema)
 
         return schema
